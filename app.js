@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const timelineTrack = document.getElementById('timeline-track');
     const sleepSlider = document.getElementById('sleep-slider');
+    const awakeSlider = document.getElementById('awake-slider');
+    const nextSleepSlider = document.getElementById('next-sleep-slider');
     const currentTimeIndicator = document.getElementById('current-time-indicator');
     const wrapper = document.querySelector('.timeline-wrapper');
     const bedtimeDisplay = document.getElementById('bedtime-display');
@@ -19,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const HOUR_WIDTH = 100; // Must match CSS --hour-width
     const MINUTE_WIDTH = HOUR_WIDTH / 60;
     const SLEEP_DURATION_HOURS = 8;
+    let awakeDurationHours = 16;
     
     // 1 day before and 1 day after -> 3 days total
     const START_OFFSET_DAYS = -1;
@@ -131,6 +134,22 @@ document.addEventListener('DOMContentLoaded', () => {
         
         bedtimeDateDisplay.textContent = getDateLabel(bedtime);
         wakeupDateDisplay.textContent = getDateLabel(wakeupTime);
+
+        // Update Next Sleep and Awake Slider
+        const nextSleepLeft = parseFloat(nextSleepSlider.style.left) || (sliderLeft + (SLEEP_DURATION_HOURS + awakeDurationHours) * HOUR_WIDTH);
+        
+        // Ensure awake width doesn't go negative
+        const awakeWidth = Math.max(0, nextSleepLeft - (sliderLeft + SLEEP_DURATION_HOURS * HOUR_WIDTH));
+        
+        awakeSlider.style.left = `${sliderLeft + SLEEP_DURATION_HOURS * HOUR_WIDTH}px`;
+        awakeSlider.style.width = `${awakeWidth}px`;
+        
+        const awakeHours = awakeWidth / HOUR_WIDTH;
+        awakeSlider.querySelector('.slider-content').textContent = `Awake (${Math.round(awakeHours * 10) / 10}h)`;
+        
+        const nextBedtimeOffsetMs = (nextSleepLeft / MINUTE_WIDTH) * 60 * 1000;
+        const nextBedtime = new Date(timelineStartTime.getTime() + nextBedtimeOffsetMs);
+        nextSleepSlider.querySelector('.slider-content').textContent = `Next Sleep: ${formatTime(nextBedtime)}`;
     }
 
     function updateCurrentTime() {
@@ -189,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetLeft > maxLeft) targetLeft = maxLeft;
 
         sleepSlider.style.left = `${targetLeft}px`;
+        nextSleepSlider.style.left = `${targetLeft + (SLEEP_DURATION_HOURS + awakeDurationHours) * HOUR_WIDTH}px`;
         updateDisplays();
         centerTimeline(targetLeft);
     }
@@ -197,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSleepNow.addEventListener('click', () => {
         const currentPos = updateCurrentTime();
         sleepSlider.style.left = `${currentPos}px`;
+        nextSleepSlider.style.left = `${currentPos + (SLEEP_DURATION_HOURS + awakeDurationHours) * HOUR_WIDTH}px`;
         updateDisplays();
         centerTimeline(currentPos);
     });
@@ -207,6 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Slider Dragging Logic
     let isDragging = false;
+    let isDraggingNext = false;
     let startX = 0;
     let sliderStartLeft = 0;
 
@@ -218,25 +240,48 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault(); // prevent text selection
     });
 
+    nextSleepSlider.addEventListener('mousedown', (e) => {
+        isDraggingNext = true;
+        nextSleepSlider.classList.add('dragging');
+        startX = e.clientX;
+        sliderStartLeft = parseFloat(nextSleepSlider.style.left) || 0;
+        e.preventDefault();
+    });
+
     document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        
-        const deltaX = e.clientX - startX;
-        let newLeft = sliderStartLeft + deltaX;
-        
-        // Boundaries
-        const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - (SLEEP_DURATION_HOURS * HOUR_WIDTH);
-        if (newLeft < 0) newLeft = 0;
-        if (newLeft > maxLeft) newLeft = maxLeft;
-        
-        sleepSlider.style.left = `${newLeft}px`;
-        updateDisplays();
+        if (isDragging) {
+            const deltaX = e.clientX - startX;
+            let newLeft = sliderStartLeft + deltaX;
+            
+            // Boundaries
+            const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - (SLEEP_DURATION_HOURS * HOUR_WIDTH);
+            if (newLeft < 0) newLeft = 0;
+            if (newLeft > maxLeft) newLeft = maxLeft;
+            
+            sleepSlider.style.left = `${newLeft}px`;
+            nextSleepSlider.style.left = `${newLeft + (SLEEP_DURATION_HOURS + awakeDurationHours) * HOUR_WIDTH}px`;
+            updateDisplays();
+        } else if (isDraggingNext) {
+            const deltaX = e.clientX - startX;
+            let newLeft = sliderStartLeft + deltaX;
+            
+            const minLeft = parseFloat(sleepSlider.style.left) + SLEEP_DURATION_HOURS * HOUR_WIDTH;
+            if (newLeft < minLeft) newLeft = minLeft;
+            
+            nextSleepSlider.style.left = `${newLeft}px`;
+            awakeDurationHours = (newLeft - parseFloat(sleepSlider.style.left) - SLEEP_DURATION_HOURS * HOUR_WIDTH) / HOUR_WIDTH;
+            updateDisplays();
+        }
     });
 
     document.addEventListener('mouseup', () => {
         if (isDragging) {
             isDragging = false;
             sleepSlider.classList.remove('dragging');
+        }
+        if (isDraggingNext) {
+            isDraggingNext = false;
+            nextSleepSlider.classList.remove('dragging');
         }
     });
 
@@ -248,25 +293,48 @@ document.addEventListener('DOMContentLoaded', () => {
         sliderStartLeft = parseFloat(sleepSlider.style.left) || 0;
     }, {passive: false});
 
+    nextSleepSlider.addEventListener('touchstart', (e) => {
+        isDraggingNext = true;
+        nextSleepSlider.classList.add('dragging');
+        startX = e.touches[0].clientX;
+        sliderStartLeft = parseFloat(nextSleepSlider.style.left) || 0;
+    }, {passive: false});
+
     document.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault(); // prevent scrolling while dragging
-        
-        const deltaX = e.touches[0].clientX - startX;
-        let newLeft = sliderStartLeft + deltaX;
-        
-        const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - (SLEEP_DURATION_HOURS * HOUR_WIDTH);
-        if (newLeft < 0) newLeft = 0;
-        if (newLeft > maxLeft) newLeft = maxLeft;
-        
-        sleepSlider.style.left = `${newLeft}px`;
-        updateDisplays();
+        if (isDragging) {
+            e.preventDefault(); // prevent scrolling while dragging
+            const deltaX = e.touches[0].clientX - startX;
+            let newLeft = sliderStartLeft + deltaX;
+            
+            const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - (SLEEP_DURATION_HOURS * HOUR_WIDTH);
+            if (newLeft < 0) newLeft = 0;
+            if (newLeft > maxLeft) newLeft = maxLeft;
+            
+            sleepSlider.style.left = `${newLeft}px`;
+            nextSleepSlider.style.left = `${newLeft + (SLEEP_DURATION_HOURS + awakeDurationHours) * HOUR_WIDTH}px`;
+            updateDisplays();
+        } else if (isDraggingNext) {
+            e.preventDefault();
+            const deltaX = e.touches[0].clientX - startX;
+            let newLeft = sliderStartLeft + deltaX;
+            
+            const minLeft = parseFloat(sleepSlider.style.left) + SLEEP_DURATION_HOURS * HOUR_WIDTH;
+            if (newLeft < minLeft) newLeft = minLeft;
+            
+            nextSleepSlider.style.left = `${newLeft}px`;
+            awakeDurationHours = (newLeft - parseFloat(sleepSlider.style.left) - SLEEP_DURATION_HOURS * HOUR_WIDTH) / HOUR_WIDTH;
+            updateDisplays();
+        }
     }, {passive: false});
 
     document.addEventListener('touchend', () => {
         if (isDragging) {
             isDragging = false;
             sleepSlider.classList.remove('dragging');
+        }
+        if (isDraggingNext) {
+            isDraggingNext = false;
+            nextSleepSlider.classList.remove('dragging');
         }
     });
 
@@ -276,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let scrollStart = 0;
 
     wrapper.addEventListener('mousedown', (e) => {
-        if (e.target === sleepSlider || sleepSlider.contains(e.target)) return;
+        if (e.target.closest('.sleep-slider') || e.target.closest('.next-sleep-slider') || e.target.closest('.awake-slider')) return;
         isPanning = true;
         panStartX = e.clientX;
         scrollStart = wrapper.scrollLeft;
@@ -302,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Set initial slider position to current time
     sleepSlider.style.left = `${currentPos}px`;
+    nextSleepSlider.style.left = `${currentPos + (SLEEP_DURATION_HOURS + awakeDurationHours) * HOUR_WIDTH}px`;
     updateDisplays();
     
     // Center the view on the current time without smooth scroll initially

@@ -296,13 +296,11 @@ body {
 }
 
 /* Slider */
-.sleep-slider {
+.sleep-slider, .next-sleep-slider {
     position: absolute;
     height: 60px; /* Looks like an event */
     top: calc(50% - 30px);
     width: calc(var(--hour-width) * 8);
-    background-color: var(--event-bg);
-    border: 1px solid var(--event-border);
     border-radius: 4px;
     display: flex;
     justify-content: space-between;
@@ -313,18 +311,63 @@ body {
     transition: box-shadow 0.2s, background-color 0.2s, left 0.3s ease-out; /* Added transition for smooth snapping */
 }
 
-.sleep-slider.dragging {
+.sleep-slider {
+    background-color: var(--event-bg);
+    border: 1px solid var(--event-border);
+}
+
+.next-sleep-slider {
+    background-color: #34a853;
+    border: 1px solid #188038;
+}
+
+.sleep-slider.dragging, .next-sleep-slider.dragging {
     transition: none; /* remove transition during drag */
 }
 
-.sleep-slider:hover {
+.sleep-slider:hover, .next-sleep-slider:hover {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-.sleep-slider:active {
+.sleep-slider:active, .next-sleep-slider:active {
     cursor: grabbing;
-    background-color: var(--primary-hover);
     box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.sleep-slider:active {
+    background-color: var(--primary-hover);
+}
+
+.next-sleep-slider:active {
+    background-color: #2e9649;
+}
+
+.awake-slider {
+    position: absolute;
+    height: 40px;
+    top: calc(50% - 20px);
+    background: linear-gradient(to right, #fbbc04 0%, #fbbc04 60%, #f29900 80%, #ea4335 100%);
+    border: 1px solid #e37400;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9;
+    opacity: 0.8;
+    transition: left 0.3s ease-out, width 0.3s ease-out;
+    pointer-events: none;
+}
+
+.awake-slider .slider-content {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 500;
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 10px;
 }
 
 .slider-handle {
