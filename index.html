@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleep Tracker & Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo-container">
+            <svg class="menu-icon" viewBox="0 0 24 24" focusable="false" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
+            <span class="logo-text">Sleep Calendar</span>
+        </div>
+        <div class="header-right">
+            <div id="current-time-display" class="current-time">--:--</div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="summary-panel">
+            <div class="time-block">
+                <span class="label">Bedtime</span>
+                <span class="date-value" id="bedtime-date">Today</span>
+                <span class="time-value" id="bedtime-display">--:-- AM</span>
+            </div>
+            <div class="duration-block">
+                <div class="duration-line">
+                    <span class="duration-text">8h</span>
+                </div>
+            </div>
+            <div class="time-block">
+                <span class="label">Wake up</span>
+                <span class="date-value" id="wakeup-date">Tomorrow</span>
+                <span class="time-value highlight" id="wakeup-display">--:-- AM</span>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <span class="quick-label">Shortcuts:</span>
+            <button id="btn-sleep-now" class="action-btn primary">Sleep Now</button>
+            <button id="btn-wake-5am" class="action-btn">Wake at 5 AM</button>
+            <button id="btn-wake-8am" class="action-btn">Wake at 8 AM</button>
+            <button id="btn-wake-5pm" class="action-btn">Wake at 5 PM</button>
+        </div>
+
+        <div class="timeline-wrapper">
+            <div class="timeline-container" id="timeline-container">
+                <div class="timeline-track" id="timeline-track">
+                    <!-- Hours will be generated here by JS -->
+                </div>
+                <div class="sleep-slider" id="sleep-slider" style="left: 0;">
+                    <div class="slider-handle left"><div class="drag-indicator"></div></div>
+                    <div class="slider-content">8 Hours Sleep</div>
+                    <div class="slider-handle right"><div class="drag-indicator"></div></div>
+                </div>
+                <div class="current-time-indicator" id="current-time-indicator">
+                    <div class="current-time-dot"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
