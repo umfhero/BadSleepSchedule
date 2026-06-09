@@ -23,9 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const SLEEP_DURATION_HOURS = 8;
     let awakeDurationHours = 16;
     
-    // 1 day before and 1 day after -> 3 days total
+    // 1 day before and 6 days ahead -> 7 days total
     const START_OFFSET_DAYS = -1;
-    const TOTAL_DAYS = 3;
+    const TOTAL_DAYS = 7;
     
     let baseTime = new Date();
     baseTime.setHours(0, 0, 0, 0); // Start of today
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let targetLeft = offsetMinutes * MINUTE_WIDTH;
 
         // Boundaries
-        const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - (SLEEP_DURATION_HOURS * HOUR_WIDTH);
+        const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - ((SLEEP_DURATION_HOURS * 2 + awakeDurationHours) * HOUR_WIDTH);
         if (targetLeft < 0) targetLeft = 0;
         if (targetLeft > maxLeft) targetLeft = maxLeft;
 
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let newLeft = sliderStartLeft + deltaX;
             
             // Boundaries
-            const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - (SLEEP_DURATION_HOURS * HOUR_WIDTH);
+            const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - ((SLEEP_DURATION_HOURS * 2 + awakeDurationHours) * HOUR_WIDTH);
             if (newLeft < 0) newLeft = 0;
             if (newLeft > maxLeft) newLeft = maxLeft;
             
@@ -266,7 +266,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let newLeft = sliderStartLeft + deltaX;
             
             const minLeft = parseFloat(sleepSlider.style.left) + SLEEP_DURATION_HOURS * HOUR_WIDTH;
+            const maxLeftNext = (TOTAL_DAYS * 24 * HOUR_WIDTH) - (SLEEP_DURATION_HOURS * HOUR_WIDTH);
             if (newLeft < minLeft) newLeft = minLeft;
+            if (newLeft > maxLeftNext) newLeft = maxLeftNext;
             
             nextSleepSlider.style.left = `${newLeft}px`;
             awakeDurationHours = (newLeft - parseFloat(sleepSlider.style.left) - SLEEP_DURATION_HOURS * HOUR_WIDTH) / HOUR_WIDTH;
@@ -306,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const deltaX = e.touches[0].clientX - startX;
             let newLeft = sliderStartLeft + deltaX;
             
-            const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - (SLEEP_DURATION_HOURS * HOUR_WIDTH);
+            const maxLeft = (TOTAL_DAYS * 24 * HOUR_WIDTH) - ((SLEEP_DURATION_HOURS * 2 + awakeDurationHours) * HOUR_WIDTH);
             if (newLeft < 0) newLeft = 0;
             if (newLeft > maxLeft) newLeft = maxLeft;
             
@@ -319,7 +321,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let newLeft = sliderStartLeft + deltaX;
             
             const minLeft = parseFloat(sleepSlider.style.left) + SLEEP_DURATION_HOURS * HOUR_WIDTH;
+            const maxLeftNext = (TOTAL_DAYS * 24 * HOUR_WIDTH) - (SLEEP_DURATION_HOURS * HOUR_WIDTH);
             if (newLeft < minLeft) newLeft = minLeft;
+            if (newLeft > maxLeftNext) newLeft = maxLeftNext;
             
             nextSleepSlider.style.left = `${newLeft}px`;
             awakeDurationHours = (newLeft - parseFloat(sleepSlider.style.left) - SLEEP_DURATION_HOURS * HOUR_WIDTH) / HOUR_WIDTH;
